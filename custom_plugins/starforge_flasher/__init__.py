@@ -1,9 +1,9 @@
-"""Node flasher: write ESP32 firmware to a node board over USB from RotorHazard.
+"""StarForge Flasher: write ESP32 firmware to a node board over USB from RotorHazard.
 
-Vendor-neutral on purpose. A board preset says which chip it is and where the
-release's parts go; the custom mode writes any single image at any offset, so a
-board from any project can be flashed without a plugin per vendor. This is not a
-StarForge-only tool: StarForge presets are simply the ones we can guarantee.
+Made for StarForge boards, but not limited to them. A board preset says which
+chip it is and where the release's parts go; the custom mode writes any single
+image at any offset, so a board from any project can be flashed without a plugin
+per vendor. StarForge presets are simply the ones we can guarantee.
 
 A board the timer is reading cannot be flashed - the server owns that port, so
 only ports outside GENERAL.SERIAL_PORTS are ever offered.
@@ -15,8 +15,8 @@ import json
 import os
 from glob import glob as _glob
 
-PANEL = 'node_flasher'
-PANEL_LABEL = 'Node flasher'
+PANEL = 'starforge_flasher'
+PANEL_LABEL = 'StarForge Flasher'
 PROFILE_FIELD = 'profile'
 FOLDER_FIELD = 'firmware_folder'
 FILE_FIELD = 'image_file'
@@ -50,10 +50,11 @@ PART_NAMES = ('bootloader.bin', 'partitions.bin', 'firmware.bin')
 
 INTRO = (
     'Flash a **node board** over USB, from this machine.\n\n'
-    'Pick the board preset - StarForge boards are listed, and *custom* writes any '
-    'single firmware image at an offset you choose, so other projects\' boards '
-    'work too. Presets only differ in the chip and where the parts go, so a new '
-    'board usually needs no plugin change at all.\n\n'
+    'Built for StarForge boards, but not limited to them: pick a board preset, or '
+    'use *custom* to write any single firmware image at an offset you choose, so a '
+    'board from another project works without a plugin of its own. Presets only '
+    'differ in the chip and where the parts go, so a new board usually needs no '
+    'code change at all.\n\n'
     'The board the timer is reading is never offered: stop the timer or plug in '
     'a spare port.'
 )
@@ -78,7 +79,7 @@ class Flasher:
     def initialize(self, _args):
         rh = self._rhapi
         rh.ui.register_panel(PANEL, PANEL_LABEL, 'settings', order=2)
-        rh.ui.register_markdown(PANEL, 'nf_intro', INTRO)
+        rh.ui.register_markdown(PANEL, 'sf_intro', INTRO)
 
         from RHUI import UIField, UIFieldType
         try:
@@ -123,8 +124,8 @@ class Flasher:
                     persistent_section=PANEL),
             PANEL)
 
-        rh.ui.register_markdown(PANEL, 'nf_state', 'Ready.')
-        rh.ui.register_quickbutton(PANEL, 'nf_flash', 'Flash the free board', self.flash)
+        rh.ui.register_markdown(PANEL, 'sf_state', 'Ready.')
+        rh.ui.register_quickbutton(PANEL, 'sf_flash', 'Flash the free board', self.flash)
 
     # ------------------------------------------------------------ settings
     def _setting(self, key, default=''):
@@ -287,7 +288,7 @@ class Flasher:
     # ------------------------------------------------------------------ misc
     def _report(self, text):
         try:
-            self._rhapi.ui.update_markdown({'panel': PANEL, 'name': 'nf_state',
+            self._rhapi.ui.update_markdown({'panel': PANEL, 'name': 'sf_state',
                                             'desc': text})
         except Exception:  # noqa: BLE001 - the return value is the fallback
             pass

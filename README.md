@@ -1,12 +1,12 @@
-# Node Flasher
+# StarForge Flasher
 
 A RotorHazard plugin that writes ESP32 firmware to a **node board over USB**,
 from the timer's own web UI - no PC at the bench.
 
-It is deliberately **not tied to one vendor**. A board preset says which chip it
-is and where a release's parts go; the custom mode writes any single firmware
-image at any offset, so a board from another project works without a plugin per
-vendor.
+Made for StarForge boards, but deliberately **not limited to them**. A board
+preset says which chip it is and where a release's parts go; the custom mode
+writes any single firmware image at any offset, so a board from another project
+works without a plugin per vendor.
 
 ## Board presets
 
@@ -27,7 +27,7 @@ not replace that project's flasher, and needs nothing from it.
 
 ## How it works
 
-- Panel: **Settings → Node flasher**, with a board preset, firmware folder, image
+- Panel: **Settings → StarForge Flasher**, with a board preset, firmware folder, image
   file, chip and offset, one button and a status line.
 - Only ports **outside `GENERAL.SERIAL_PORTS`** are offered, so the board the
   timer is reading is never a candidate.
@@ -48,7 +48,7 @@ not replace that project's flasher, and needs nothing from it.
 Community database (once listed): **Settings → Plugins → Browse Community
 Plugins**.
 
-Manually: copy `custom_plugins/node_flasher/` into the server's `plugins/`
+Manually: copy `custom_plugins/starforge_flasher/` into the server's `plugins/`
 directory and restart RotorHazard.
 
 ## Limitations

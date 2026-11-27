@@ -1,9 +1,9 @@
 {
-  "domain": "node_flasher",
-  "name": "Node Flasher",
+  "domain": "starforge_flasher",
+  "name": "StarForge Flasher",
   "author": "RaceFPV LLC",
   "author_uri": "https://github.com/RaceFPV",
-  "description": "Flashes ESP32 node boards over USB from the RotorHazard UI, with board presets and a custom image mode",
+  "description": "Flashes ESP32 node boards over USB from the RotorHazard UI - StarForge presets plus a custom image mode for any board",
   "documentation_uri": "https://github.com/RaceFPV/starforge-plugin",
   "required_rhapi_version": "1.7",
   "version": "1.0.0"

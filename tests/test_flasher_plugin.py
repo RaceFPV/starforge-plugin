@@ -1,4 +1,4 @@
-"""Tests for the RotorHazard node flasher plugin (no hardware, no server).
+"""Tests for the StarForge Flasher plugin (no hardware, no server).
 
 The RHAPI surface is stubbed and esptool is replaced, so these check the
 decisions that matter: which ports are candidates, which chip and offsets a
@@ -12,7 +12,7 @@ import types
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLUGIN = os.path.abspath(os.path.join(HERE, '..', 'custom_plugins',
-                                      'node_flasher', '__init__.py'))
+                                      'starforge_flasher', '__init__.py'))
 
 failures = []
 
@@ -69,7 +69,7 @@ class FakeRH:
 
 
 def load_plugin():
-    spec = importlib.util.spec_from_file_location('node_flasher', PLUGIN)
+    spec = importlib.util.spec_from_file_location('starforge_flasher', PLUGIN)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -122,8 +122,8 @@ with tempfile.TemporaryDirectory() as tmp:
     for name in ('bootloader.bin', 'partitions.bin', 'firmware.bin'):
         open(os.path.join(tmp, name), 'wb').write(b'x')
 
-    rh = FakeRH({('node_flasher', 'profile'): 'starforge_c5',
-                 ('node_flasher', 'firmware_folder'): tmp})
+    rh = FakeRH({('starforge_flasher', 'profile'): 'starforge_c5',
+                 ('starforge_flasher', 'firmware_folder'): tmp})
     flasher = plugin.initialize(rh)
     flasher.initialize(None)
     chip, parts = flasher.plan()
@@ -134,16 +134,16 @@ with tempfile.TemporaryDirectory() as tmp:
     check('three parts at fixed addresses',
           [o for o, _p in parts] == [0x2000, 0x8000, 0x10000], parts)
 
-    rh = FakeRH({('node_flasher', 'profile'): 'starforge_c3',
-                 ('node_flasher', 'firmware_folder'): tmp})
+    rh = FakeRH({('starforge_flasher', 'profile'): 'starforge_c3',
+                 ('starforge_flasher', 'firmware_folder'): tmp})
     flasher3 = plugin.initialize(rh)
     flasher3.initialize(None)
     chip, parts = flasher3.plan()
     check('C3 preset uses esp32c3 at 0x0',
           chip == 'esp32c3' and parts[0][0] == 0x0, (chip, parts))
 
-    rh = FakeRH({('node_flasher', 'profile'): 'starforge_c5',
-                 ('node_flasher', 'firmware_folder'): tmp + '/absent'})
+    rh = FakeRH({('starforge_flasher', 'profile'): 'starforge_c5',
+                 ('starforge_flasher', 'firmware_folder'): tmp + '/absent'})
     broken = plugin.initialize(rh)
     broken.initialize(None)
     try:
@@ -157,18 +157,18 @@ with tempfile.TemporaryDirectory() as tmp:
     image = os.path.join(tmp, 'firmware-merged.bin')
     open(image, 'wb').write(b'x')
 
-    rh = FakeRH({('node_flasher', 'profile'): 'merged_0x0',
-                 ('node_flasher', 'image_file'): image})
+    rh = FakeRH({('starforge_flasher', 'profile'): 'merged_0x0',
+                 ('starforge_flasher', 'image_file'): image})
     merged = plugin.initialize(rh)
     merged.initialize(None)
     chip, parts = merged.plan()
     check('merged image at 0x0, chip auto',
           chip == 'auto' and parts == [(0x0, image)], (chip, parts))
 
-    rh = FakeRH({('node_flasher', 'profile'): 'custom',
-                 ('node_flasher', 'image_file'): image,
-                 ('node_flasher', 'chip'): 'esp32c5',
-                 ('node_flasher', 'offset'): '0x2000'})
+    rh = FakeRH({('starforge_flasher', 'profile'): 'custom',
+                 ('starforge_flasher', 'image_file'): image,
+                 ('starforge_flasher', 'chip'): 'esp32c5',
+                 ('starforge_flasher', 'offset'): '0x2000'})
     custom = plugin.initialize(rh)
     custom.initialize(None)
     chip, parts = custom.plan()
@@ -182,9 +182,9 @@ with tempfile.TemporaryDirectory() as tmp:
           and '0x2000' in joined, argv)
     check('argv leaves download mode safely', 'watchdog-reset' in joined)
 
-    rh = FakeRH({('node_flasher', 'profile'): 'custom',
-                 ('node_flasher', 'image_file'): image,
-                 ('node_flasher', 'offset'): 'banana'})
+    rh = FakeRH({('starforge_flasher', 'profile'): 'custom',
+                 ('starforge_flasher', 'image_file'): image,
+                 ('starforge_flasher', 'offset'): 'banana'})
     bad = plugin.initialize(rh)
     bad.initialize(None)
     try:
@@ -193,8 +193,8 @@ with tempfile.TemporaryDirectory() as tmp:
     except ValueError as exc:
         check('bad offset rejected', 'not a number' in str(exc), str(exc))
 
-    rh = FakeRH({('node_flasher', 'profile'): 'no_such_board',
-                 ('node_flasher', 'image_file'): image})
+    rh = FakeRH({('starforge_flasher', 'profile'): 'no_such_board',
+                 ('starforge_flasher', 'image_file'): image})
     unknown = plugin.initialize(rh)
     unknown.initialize(None)
     try:
@@ -230,8 +230,8 @@ with tempfile.TemporaryDirectory() as tmp:
         open(os.path.join(tmp, name), 'wb').write(b'x')
     plugin._glob = lambda pattern: ['/dev/ttyACM1']
     rh = FakeRH({('GENERAL', 'SERIAL_PORTS'): [],
-                 ('node_flasher', 'profile'): 'starforge_c5',
-                 ('node_flasher', 'firmware_folder'): tmp})
+                 ('starforge_flasher', 'profile'): 'starforge_c5',
+                 ('starforge_flasher', 'firmware_folder'): tmp})
     flasher = plugin.initialize(rh)
     flasher.initialize(None)
 
@@ -272,4 +272,4 @@ if failures:
     for failure in failures:
         print('  -', failure)
     sys.exit(1)
-print('PASS: node flasher plugin')
+print('PASS: starforge flasher plugin')
