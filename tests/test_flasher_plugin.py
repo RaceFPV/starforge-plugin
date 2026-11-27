@@ -211,6 +211,12 @@ flasher.initialize(None)
 check('port the timer uses is not offered',
       flasher.free_ports() == ['/dev/ttyACM1'], flasher.free_ports())
 
+# hot-plugged ports are not written back to the config, so the OS is asked too
+flasher._held_by_another_process = lambda path: path.endswith('ttyACM1')
+check('port held open by another process is not offered',
+      flasher.free_ports() == [], flasher.free_ports())
+flasher._held_by_another_process = lambda path: False
+
 plugin._glob = lambda pattern: ['/dev/ttyACM0', '/dev/ttyACM0']
 plain = plugin.initialize(FakeRH({('GENERAL', 'SERIAL_PORTS'): []}))
 plain.initialize(None)

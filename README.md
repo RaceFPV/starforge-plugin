@@ -33,7 +33,9 @@ requests welcome.
 **By hand:** copy `custom_plugins/starforge_flasher/` into RotorHazard's
 `plugins/` folder and restart.
 
-One dependency — esptool 4.8.1 or later, in the Python that runs RotorHazard:
+One dependency — esptool 4.8.1 or later. RotorHazard installs it for you when the
+plugin is installed; if your server does not install plugin dependencies (or you
+copied the folder in by hand), install it once:
 
 ```bash
 python3 -m pip install esptool
@@ -51,8 +53,9 @@ again. The panel tells you this too if a write fails.
 
 ## Good to know
 
-- **A board the timer is reading can't be flashed.** The server owns that port —
-  stop the timer, or use a spare port. The plugin only offers ports that are free.
+- **A board the timer is reading can't be flashed.** Its port is skipped whether it
+  is listed in `GENERAL.SERIAL_PORTS` or simply held open by another process, so
+  stop the timer or use a spare port.
 - USB only: the board has to be on the machine running RotorHazard.
 - It writes the firmware you give it; it doesn't download releases by itself.
 

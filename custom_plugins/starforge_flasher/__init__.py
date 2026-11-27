@@ -5,8 +5,8 @@ chip it is and where the release's parts go; the custom mode writes any single
 image at any offset, so a board from any project can be flashed without a plugin
 per vendor. StarForge presets are simply the ones we can guarantee.
 
-A board the timer is reading cannot be flashed - the server owns that port, so
-only ports outside GENERAL.SERIAL_PORTS are ever offered.
+A board the timer is reading cannot be flashed: its port is excluded whether it
+is in GENERAL.SERIAL_PORTS or simply held open by another process.
 """
 
 import contextlib
@@ -161,6 +161,36 @@ class Flasher:
                 ports = text.split(',')
         return [os.path.realpath(str(p)) for p in ports if str(p).strip()]
 
+    def _held_by_another_process(self, path):
+        """True when another process has this device open.
+
+        The configured list cannot see a port the server adopted after startup
+        (hot-plug), so ask the OS as well: a tty open elsewhere is not free,
+        whatever the config says.
+        """
+        try:
+            target = os.path.realpath(path)
+        except OSError:
+            return False
+        me = str(os.getpid())
+        try:
+            pids = [p for p in os.listdir('/proc') if p.isdigit() and p != me]
+        except OSError:
+            return False  # not Linux, or no /proc: fall back to the config list
+        for pid in pids:
+            fd_dir = '/proc/%s/fd' % pid
+            try:
+                fds = os.listdir(fd_dir)
+            except OSError:
+                continue  # not ours to inspect
+            for fd in fds:
+                try:
+                    if os.readlink(os.path.join(fd_dir, fd)) == target:
+                        return True
+                except OSError:
+                    continue
+        return False
+
     def free_ports(self):
         used = set(self.configured_ports())
         found = {}
@@ -170,7 +200,8 @@ class Flasher:
                 if path in used or real in used:
                     continue
                 found.setdefault(real, path)
-        return sorted(found.values())
+        return sorted(path for path in found.values()
+                      if not self._held_by_another_process(path))
 
     # ---------------------------------------------------------------- plan
     def plan(self):
