@@ -1,71 +1,76 @@
 # StarForge Flasher
 
-A RotorHazard plugin that writes ESP32 firmware to a **node board over USB**,
-from the timer's own web UI - no PC at the bench.
+Flash a node board from your RotorHazard timer — no laptop at the bench.
 
-Made for StarForge boards, but deliberately **not limited to them**. A board
-preset says which chip it is and where a release's parts go; the custom mode
-writes any single firmware image at any offset, so a board from another project
-works without a plugin per vendor.
+Plug an ESP32 board into the Pi, open Settings, press **Flash**. Done.
 
-## Board presets
+Made for StarForge boards, happy with others: pick a preset, or point it at any
+firmware image and tell it where it goes.
 
-| preset | chip | writes |
-|---|---|---|
-| StarForge C5 (DevKitC / C5-Zero / XIAO) | ESP32-C5 | bootloader `0x2000`, partitions `0x8000`, app `0x10000` |
-| StarForge C3 | ESP32-C3 | `0x0`, `0x8000`, `0x10000` |
-| StarForge S3 | ESP32-S3 | `0x0`, `0x8000`, `0x10000` |
-| Generic ESP32-C6 (parts) | ESP32-C6 | `0x0`, `0x8000`, `0x10000` |
-| Merged image at 0x0 | auto | one image (ESP-IDF `merge_bin`, FPVGate, most C3/C6/S3) |
-| Merged image at 0x1000 | auto | one image (ESP32 / ESP32-S2) |
-| Merged image at 0x2000 | auto | one image (ESP32-C5) |
-| Custom | you pick | one image at the offset you type |
+## What you get
 
-FPVGate publishes its firmware as a merged image through its own browser
-flasher; this plugin can write the same file if you have it locally - it does
-not replace that project's flasher, and needs nothing from it.
+A **StarForge Flasher** panel in RotorHazard's Settings page with a board picker,
+a folder for your firmware, one button, and a status line that says what is
+happening.
 
-## How it works
+## Boards
 
-- Panel: **Settings → StarForge Flasher**, with a board preset, firmware folder, image
-  file, chip and offset, one button and a status line.
-- Only ports **outside `GENERAL.SERIAL_PORTS`** are offered, so the board the
-  timer is reading is never a candidate.
-- Uses `esptool` as a library inside the RotorHazard process, with
-  `--before default_reset --after watchdog-reset`; when the automatic reset misses
-  it prints the hold-BOOT / tap-RESET / release-BOOT sequence.
+| Board | |
+|---|---|
+| StarForge C5 — DevKitC, C5-Zero, XIAO | ✔ |
+| StarForge C3, StarForge S3 | ✔ |
+| Generic ESP32-C6 (bootloader / partitions / app) | ✔ |
+| Anything shipping a merged image — FPVGate and most ESP-IDF projects | ✔ "Merged image" preset |
+| Something else | ✔ Custom: choose the chip and the offset |
 
-## Requirements
-
-- RotorHazard 4.3+ / RHAPI 1.7+ (panel markdown and buttons need a server that
-  delivers them).
-- `esptool` >= 4.8.1 importable by the Python running RotorHazard:
-
-      python3 -m pip install esptool
+If your board's offsets become well known, a preset for it is a few lines — pull
+requests welcome.
 
 ## Install
 
-Community database (once listed): **Settings → Plugins → Browse Community
-Plugins**.
+**From the plugin list:** Settings → Plugins → Browse Community Plugins.
 
-Manually: copy `custom_plugins/starforge_flasher/` into the server's `plugins/`
-directory and restart RotorHazard.
+**By hand:** copy `custom_plugins/starforge_flasher/` into RotorHazard's
+`plugins/` folder and restart.
 
-## Limitations
+One dependency — esptool 4.8.1 or later, in the Python that runs RotorHazard:
 
-- A board the timer is reading cannot be flashed - stop the timer or use a spare
-  port.
-- USB only: the board must be on the machine running RotorHazard.
-- It writes what you point it at; it does not download firmware or know a
-  project's release layout beyond the presets above. Add a preset when a board's
-  offsets are known and stable.
+```bash
+python3 -m pip install esptool
+```
+
+## Flashing a board
+
+1. Unpack the firmware you want to flash, or grab a merged image.
+2. Choose the board preset and point it at the folder or file.
+3. Plug the board into the timer's USB port.
+4. Press **Flash the free board**.
+
+Not starting on its own? Hold BOOT, tap RESET, release BOOT, then press Flash
+again. The panel tells you this too if a write fails.
+
+## Good to know
+
+- **A board the timer is reading can't be flashed.** The server owns that port —
+  stop the timer, or use a spare port. The plugin only offers ports that are free.
+- USB only: the board has to be on the machine running RotorHazard.
+- It writes the firmware you give it; it doesn't download releases by itself.
+
+## Coming soon
+
+- **FPVGate and other firmware, available to download** right from the panel.
+- More board presets as projects publish their layouts.
+- Version upgrades: pick the release you want instead of unpacking a zip.
 
 ## Development
 
-    python3 tests/test_flasher_plugin.py
+```bash
+python3 tests/test_flasher_plugin.py
+```
 
-Stubs the RHAPI surface and esptool: port selection, preset resolution, custom
-offset parsing, refusals and failure paths.
+The tests stub RotorHazard and esptool, so they need no server and no hardware:
+board presets, merged images, custom offsets, the refusals and the failure paths.
 
-Layout follows the RotorHazard community plugin requirements: one plugin per
-repository, `custom_plugins/<domain>/`, RHFest validated.
+Layout follows the RotorHazard community plugin rules — one plugin per
+repository, `custom_plugins/<domain>/`, validated by
+[RHFest](https://github.com/RotorHazard/rhfest-action).
